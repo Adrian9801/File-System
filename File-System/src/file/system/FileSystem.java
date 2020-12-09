@@ -5,6 +5,8 @@
  */
 package file.system;
 
+import ui.interfaz;
+
 /**
  *
  * @author adri-
@@ -16,6 +18,8 @@ public class FileSystem {
      */
     public static void main(String[] args) {
         // TODO code application logic here
+        interfaz ui = new interfaz();
+        ui.setVisible(true);
     }
     
 }
