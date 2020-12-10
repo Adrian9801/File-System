@@ -19,10 +19,11 @@ public class Tree {
         this.root = new Node("root", "Directorio", getHour());
     }
     
-    public void addArchivo(String pDireccion, String pNombre, String pExtencion, int pSize){
+    public void addArchivo(String pDireccion, String pNombre, String pExtencion, int pSize, ArrayList<Integer> pPunteros){
         Node newNode = new Node(pNombre, "Archivo", getHour());
         newNode.setExtension(pExtencion);
         newNode.setSize(pSize);
+        newNode.setNewPunteros(pPunteros);
         Node directorioPadre = getNodePadre(pDireccion);
         directorioPadre.addChild(newNode);
     }
@@ -33,14 +34,30 @@ public class Tree {
         directorioPadre.addChild(newNode);
     }
     
-    public ArrayList<Integer> eliminarElemento(String pDireccion){
-        ArrayList<Integer> deletePointers = new ArrayList<Integer>();
+    public boolean isDirectorio(String pDireccion){
         Node nodo = getNodePadre(pDireccion);
-        if(nodo.getType().compareToIgnoreCase("Directorio") == 0){
+        return nodo.getType().compareToIgnoreCase("Directorio") == 0;
+    }
+    
+    public ArrayList<Integer> eliminarElemento(String pDireccion, String pNombre){
+        ArrayList<Integer> deletePointers = new ArrayList<Integer>();
+        Node nodoPadre = getNodePadre(pDireccion);
+        Node nodo = getNodePadre(pDireccion.concat("/"+pNombre));
+        System.out.println(pDireccion.concat("/"+pNombre));
+        if(nodo.getType().compareToIgnoreCase("Directorio") == 0)
             recorrido(nodo, deletePointers);
-        }
         else{
+            System.out.println("Hola");
+            System.out.println(nodo.getPunteros().size());
+            System.out.println("See");
+            System.out.println(deletePointers.size());
             deletePointers.addAll(nodo.getPunteros());
+            System.out.println("Hassssa");
+            System.out.println(deletePointers.size());
+        }
+        for (int i = 0; i < nodoPadre.getChilds().size(); i++) {
+            if(nodoPadre.getChilds().get(i).getName().compareToIgnoreCase(pNombre) == 0)
+                nodoPadre.getChilds().remove(i);
         }
         return deletePointers;
     }

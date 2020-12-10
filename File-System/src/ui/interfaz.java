@@ -239,6 +239,12 @@ public class interfaz extends javax.swing.JFrame {
             }
         });
         
+        item5.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent e){
+                eliminar(jTable1.getSelectedRow());
+            }
+        });
+        
         popupMenu.add(item1);
         popupMenu.add(item2);
         popupMenu.add(item3);
@@ -253,6 +259,11 @@ public class interfaz extends javax.swing.JFrame {
         model = (DefaultTableModel) jTable1.getModel();
         modelTree = (DefaultTreeModel) jTree1.getModel();
         rootTree = (DefaultMutableTreeNode) jTree1.getModel().getRoot();
+    }
+    
+    private void eliminar(int pSelectDocument){
+        controlador.eliminarElemento(pSelectDocument);
+        model.removeRow(pSelectDocument);
     }
     
     public boolean crearCarpeta(String pNombre) {

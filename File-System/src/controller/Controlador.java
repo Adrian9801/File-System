@@ -46,7 +46,7 @@ public class Controlador {
         }
         if(punteros.size() == 0)
             return 1;
-        mem.addArchivo(dirActual, pNombre, pExtension, pCont.length());
+        mem.addArchivo(dirActual, pNombre.concat(pExtension), pExtension, pCont.length(), punteros);
         listDocuments.add(pNombre.concat(pExtension));
         return 2;
     }
@@ -62,8 +62,9 @@ public class Controlador {
     }
     
     public void eliminarElemento(int numDocument){
-        mem.eliminarElemento(dirActual.concat("/"+listDocuments.get(numDocument)));
-        
+        ArrayList<Integer> punteros = mem.eliminarElemento(dirActual, listDocuments.get(numDocument));
+        limpiarSectores(punteros);
+        listDocuments.remove(numDocument);
     }
     
     //metodo verificar si es carpeta o archivo
@@ -85,8 +86,12 @@ public class Controlador {
         
     }
     
-    public void moverCopiar(){
+    public void copiarElemento(){
         
+    }
+    
+    public boolean isDirectorio(int numDocument){
+        return mem.isDirectorio(dirActual.concat("/"+listDocuments.get(numDocument)));
     }
     
     private void crearDisco(){
@@ -140,6 +145,7 @@ public class Controlador {
                     pointer += sizeSector + 1;
                     r.seek(pointer);
                 }
+                r.close();
             } catch (FileNotFoundException ex) {
                 Logger.getLogger(Controlador.class.getName()).log(Level.SEVERE, null, ex);
             } catch (IOException ex) {
@@ -148,5 +154,27 @@ public class Controlador {
             cantSectLibres -= cantNecesariaSectores;
         }
         return punteros;
+    }
+    
+    private void limpiarSectores(ArrayList<Integer> pPunteros){
+        String sectorLimpio = "";
+        cantSectLibres += pPunteros.size();
+        for (int i = 0; i < sizeSector; i++) {
+            sectorLimpio = sectorLimpio.concat("0");
+        }
+        try {
+            File f = new File("Disco.txt"); 
+            RandomAccessFile r; 
+            r = new RandomAccessFile(f,"rw");
+            for (int i = 0; i < pPunteros.size(); i++) {
+                r.seek(pPunteros.get(i));
+                r.write(sectorLimpio.getBytes());
+            }
+            r.close();
+        }catch (FileNotFoundException ex) {
+            Logger.getLogger(Controlador.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(Controlador.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 }
