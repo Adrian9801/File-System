@@ -52,7 +52,8 @@ public class Controlador {
         listDocuments.add(pNombre);
     }
     
-    public void eliminarElemento(String pDireccion){
+    public void eliminarElemento(int numDocument){
+        mem.eliminarElemento(dirActual.concat("/"+listDocuments.get(numDocument)));
         
     }
     
@@ -60,7 +61,7 @@ public class Controlador {
     
     public void abrirArchivo(int numDocument){
        // nodo = mem.GetArch(dirActual.concat("/"+listDocuments.get(numDocument)));
-        
+       
         
     }
     

@@ -6,6 +6,7 @@
 package model;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 
 /**
  *
@@ -32,7 +33,28 @@ public class Tree {
         directorioPadre.addChild(newNode);
     }
     
+    public ArrayList<Integer> eliminarElemento(String pDireccion){
+        ArrayList<Integer> deletePointers = new ArrayList<Integer>();
+        Node nodo = getNodePadre(pDireccion);
+        if(nodo.getType().compareToIgnoreCase("Directorio") == 0){
+            recorrido(nodo, deletePointers);
+        }
+        else{
+            deletePointers.addAll(nodo.getPunteros());
+        }
+        return deletePointers;
+    }
     
+    private void recorrido(Node nodoActual, ArrayList<Integer> deletePointers){
+        for (int i = 0; i < nodoActual.getChilds().size(); i++) {
+            if(nodoActual.getChilds().get(i).getType().compareToIgnoreCase("Directorio") == 0){
+                recorrido(nodoActual.getChilds().get(i), deletePointers);
+            }
+            else{
+                deletePointers.addAll(nodoActual.getChilds().get(i).getPunteros());
+            }
+        }
+    }
     
     private Node getNodePadre(String pDireccion){
         String[] partsDir = pDireccion.split("/");
