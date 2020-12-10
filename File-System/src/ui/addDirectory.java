@@ -107,8 +107,14 @@ public class addDirectory extends javax.swing.JDialog {
             interfaz parent = (interfaz)this.getParent();
             if(parent.crearCarpeta(this.nombreCarpeta))
                 dispose();
-            else
-                JOptionPane.showMessageDialog(this, "El nombre de la carpeta ya existe", "Error",JOptionPane.ERROR_MESSAGE);
+            else{
+                int result = JOptionPane.showConfirmDialog(null,"El nombre de la carpeta ya existe. ¿Desea que sea reemplazada?",null, JOptionPane.YES_NO_OPTION);
+                if(result == JOptionPane.YES_OPTION){
+                    parent.eliminarNombre(this.nombreCarpeta);
+                    parent.crearCarpeta(this.nombreCarpeta);
+                    dispose();
+                }
+            }
         }
         else{
             JOptionPane.showMessageDialog(this, "Ingrese el nombre de la carpeta", "Error",JOptionPane.ERROR_MESSAGE);

@@ -39,12 +39,12 @@ public class Controlador {
     }
     
     public int crearArchivo(String pNombre, String pExtension, String pCont){
-        ArrayList<Integer> punteros = agregarContDisco(pCont);
         for (int i = 0; i < listDocuments.size(); i++) {
             if(listDocuments.get(i).compareToIgnoreCase(pNombre.concat(pExtension)) == 0)
                 return 0;
         }
-        if(punteros.size() == 0)
+        ArrayList<Integer> punteros = agregarContDisco(pCont);
+        if(punteros.isEmpty())
             return 1;
         mem.addArchivo(dirActual, pNombre.concat(pExtension), pExtension, pCont.length(), punteros);
         listDocuments.add(pNombre.concat(pExtension));
@@ -75,6 +75,14 @@ public class Controlador {
         
     }
     
+    public int getPos(String pNombre){
+        for (int i = 0; i < listDocuments.size(); i++) {
+            if(listDocuments.get(i).compareToIgnoreCase(pNombre) == 0)
+                return i;
+        }
+        return -1;
+    }
+    
     public void abrirDirectorio(int numDocument){
         dirActual = dirActual.concat("/"+listDocuments.get(numDocument));
        // nodo = mem.GetArch(dirActual.concat("/"+listDocuments.get(numDocument)));
@@ -88,6 +96,11 @@ public class Controlador {
     
     public void copiarElemento(){
         
+    }
+    
+    public ArrayList<String> getPropiedades(int numDocument){
+        ArrayList<String> propiedades = mem.getPropiedades(dirActual.concat("/"+listDocuments.get(numDocument)));
+        return propiedades;
     }
     
     public boolean isDirectorio(int numDocument){

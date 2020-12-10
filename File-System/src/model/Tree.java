@@ -25,6 +25,7 @@ public class Tree {
         newNode.setSize(pSize);
         newNode.setNewPunteros(pPunteros);
         Node directorioPadre = getNodePadre(pDireccion);
+        directorioPadre.setSize(directorioPadre.getSize()+pSize);
         directorioPadre.addChild(newNode);
     }
    
@@ -37,6 +38,18 @@ public class Tree {
     public boolean isDirectorio(String pDireccion){
         Node nodo = getNodePadre(pDireccion);
         return nodo.getType().compareToIgnoreCase("Directorio") == 0;
+    }
+    
+    public ArrayList<String> getPropiedades(String pDireccion){
+        ArrayList<String> propiedades = new ArrayList<String>();
+        Node nodo = getNodePadre(pDireccion);
+        propiedades.add(nodo.getName());
+        if(nodo.getType().compareToIgnoreCase("Archivo") == 0)
+            propiedades.add(nodo.getExtension());
+        propiedades.add(nodo.getFechaCreacion());
+        propiedades.add(nodo.getFechaModificacion());
+        propiedades.add(Integer.toString(nodo.getSize()));
+        return propiedades;
     }
     
     public ArrayList<Integer> eliminarElemento(String pDireccion, String pNombre){
