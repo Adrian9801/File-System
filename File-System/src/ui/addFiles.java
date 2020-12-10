@@ -5,6 +5,8 @@
  */
 package ui;
 
+import javax.swing.JOptionPane;
+
 /**
  *
  * @author sergi
@@ -130,7 +132,19 @@ public class addFiles extends javax.swing.JDialog {
         this.nombre = this.fNombre.getText();
         this.extension = this.fExtension.getText();
         this.contenido = this.fContenido.getText();
-        System.out.print(this.nombre+", "+this.extension+", "+this.contenido);
+        if(!this.nombre.isEmpty() && !this.extension.isEmpty()){
+            interfaz parent = (interfaz)this.getParent();
+            int num = parent.crearArchivo(this.nombre, this.extension, this.contenido);
+            if(num == 2)
+                dispose();
+            else if(num == 0)
+                JOptionPane.showMessageDialog(this, "El nombre del archivo ya existe.", "Error",JOptionPane.ERROR_MESSAGE);
+            else
+                JOptionPane.showMessageDialog(this, "El disco ya esta lleno.", "Error",JOptionPane.ERROR_MESSAGE);
+        }
+        else{
+            JOptionPane.showMessageDialog(this, "Ingrese el nombre del archivo y extension.", "Error",JOptionPane.ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_addFileButtonActionPerformed
 
     private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed

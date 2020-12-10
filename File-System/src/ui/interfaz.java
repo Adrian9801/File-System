@@ -16,6 +16,10 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
 
 /**
  *
@@ -25,13 +29,18 @@ public class interfaz extends javax.swing.JFrame {
     
     private Controlador controlador;
     private JPopupMenu popupMenu;
+    private DefaultTableModel model;
+    private DefaultTreeModel modelTree;
+    private DefaultMutableTreeNode rootTree;
+    
     public interfaz() {
         initComponents();
         setLocationRelativeTo(null);
+        this.setResizable(false);
         popupTable();
         eventosMouse();
         crearDisco();
-        n();
+        editarElementos();
     }
 
     /**
@@ -62,8 +71,7 @@ public class interfaz extends javax.swing.JFrame {
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {"Trabajos", "Carpeta"},
-                {"Proyecto.txt", "Archivo"}
+
             },
             new String [] {
                 "Nombre", "Tipo"
@@ -104,12 +112,6 @@ public class interfaz extends javax.swing.JFrame {
         });
 
         javax.swing.tree.DefaultMutableTreeNode treeNode1 = new javax.swing.tree.DefaultMutableTreeNode("root");
-        javax.swing.tree.DefaultMutableTreeNode treeNode2 = new javax.swing.tree.DefaultMutableTreeNode("Trabajos");
-        javax.swing.tree.DefaultMutableTreeNode treeNode3 = new javax.swing.tree.DefaultMutableTreeNode("So.txt");
-        treeNode2.add(treeNode3);
-        treeNode1.add(treeNode2);
-        treeNode2 = new javax.swing.tree.DefaultMutableTreeNode("Proyecto.txt");
-        treeNode1.add(treeNode2);
         jTree1.setModel(new javax.swing.tree.DefaultTreeModel(treeNode1));
         jScrollPane1.setViewportView(jTree1);
 
@@ -244,10 +246,34 @@ public class interfaz extends javax.swing.JFrame {
         popupMenu.add(item5);
     }
     
-    private void n(){
+    private void editarElementos(){
         Image img = new ImageIcon("data/rehacer.png").getImage();
-        ImageIcon icBtn =new ImageIcon(img.getScaledInstance(jButton3.getWidth(), jButton3.getHeight(), Image.SCALE_SMOOTH));
+        ImageIcon icBtn = new ImageIcon(img.getScaledInstance(jButton3.getWidth(), jButton3.getHeight(), Image.SCALE_SMOOTH));
         jButton3.setIcon(icBtn);
+        model = (DefaultTableModel) jTable1.getModel();
+        modelTree = (DefaultTreeModel) jTree1.getModel();
+        rootTree = (DefaultMutableTreeNode) jTree1.getModel().getRoot();
+    }
+    
+    public boolean crearCarpeta(String pNombre) {
+        if(!controlador.crearCarpeta(pNombre))
+            return false;
+        model.addRow(new Object[]{pNombre, "Carpeta"});
+        DefaultMutableTreeNode child = new DefaultMutableTreeNode(pNombre);
+        modelTree.insertNodeInto(child, rootTree, rootTree.getChildCount());
+        jTree1.scrollPathToVisible(new TreePath(child.getPath()));
+        return true;
+    }
+    
+    public int crearArchivo(String pNombre, String pExtension, String pCont) {
+        int num = controlador.crearArchivo(pNombre, pExtension, pCont);
+        if(num == 2){
+            model.addRow(new Object[]{pNombre.concat(pExtension), "Archivo"});
+            DefaultMutableTreeNode child = new DefaultMutableTreeNode(pNombre.concat(pExtension));
+            modelTree.insertNodeInto(child, rootTree, rootTree.getChildCount());
+            jTree1.scrollPathToVisible(new TreePath(child.getPath()));
+        }
+        return num;
     }
     
     private void crearDisco(){
@@ -334,4 +360,5 @@ public class interfaz extends javax.swing.JFrame {
     private javax.swing.JTextField jTextField1;
     private javax.swing.JTree jTree1;
     // End of variables declaration//GEN-END:variables
+
 }

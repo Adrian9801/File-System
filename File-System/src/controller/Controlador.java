@@ -38,18 +38,27 @@ public class Controlador {
         crearDisco();
     }
     
-    public boolean crearArchivo(String pNombre, String pExtension, String pCont){
+    public int crearArchivo(String pNombre, String pExtension, String pCont){
         ArrayList<Integer> punteros = agregarContDisco(pCont);
+        for (int i = 0; i < listDocuments.size(); i++) {
+            if(listDocuments.get(i).compareToIgnoreCase(pNombre.concat(pExtension)) == 0)
+                return 0;
+        }
         if(punteros.size() == 0)
-            return false;
+            return 1;
         mem.addArchivo(dirActual, pNombre, pExtension, pCont.length());
-        listDocuments.add(pNombre);
-        return true;
+        listDocuments.add(pNombre.concat(pExtension));
+        return 2;
     }
     
-    public void crearCarpeta(String pNombre){
+    public boolean crearCarpeta(String pNombre){
+        for (int i = 0; i < listDocuments.size(); i++) {
+            if(listDocuments.get(i).compareToIgnoreCase(pNombre) == 0)
+                return false;
+        }
         mem.addDirectorio(dirActual, pNombre);
         listDocuments.add(pNombre);
+        return true;
     }
     
     public void eliminarElemento(int numDocument){
@@ -104,8 +113,8 @@ public class Controlador {
     
     private ArrayList<Integer> agregarContDisco(String pCont){
         int cantNecesariaSectores = pCont.length() / sizeSector;
-        if(cantNecesariaSectores == 0)
-            cantNecesariaSectores = 1;
+        if(cantNecesariaSectores == 0 || (pCont.length()%sizeSector) != 0)
+            cantNecesariaSectores++;
         ArrayList<Integer> punteros = new ArrayList<Integer>();
         if(cantNecesariaSectores <= cantSectLibres){
             File f = new File("Disco.txt"); 
@@ -113,20 +122,23 @@ public class Controlador {
             int pointer = 0;
             try {
                 r = new RandomAccessFile(f,"rw");
-                r.skipBytes(pointer);
                 for (int i = cantNecesariaSectores; i > 0;) {
-                    if(r.readChar() == '0'){
+                    char charRead = (char)r.readByte();
+                    if(charRead == '0'){
+                        r.seek(pointer);
                         if(pCont.length() > sizeSector){
                             r.write(pCont.substring(0, sizeSector).getBytes());
                             pCont = pCont.substring(sizeSector);
                         }
                         else if(pCont.length() > 0)
                             r.write(pCont.getBytes());
+                        else
+                            r.write("*".getBytes());
                         punteros.add(pointer);
                         i--;
                     }
                     pointer += sizeSector + 1;
-                    r.skipBytes(pointer);
+                    r.seek(pointer);
                 }
             } catch (FileNotFoundException ex) {
                 Logger.getLogger(Controlador.class.getName()).log(Level.SEVERE, null, ex);

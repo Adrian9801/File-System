@@ -5,6 +5,9 @@
  */
 package ui;
 
+import java.awt.Container;
+import javax.swing.JOptionPane;
+
 /**
  *
  * @author sergi
@@ -100,7 +103,16 @@ public class addDirectory extends javax.swing.JDialog {
     private void addCarpetaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addCarpetaActionPerformed
         // TODO add your handling code here:
         this.nombreCarpeta = this.fNombreCarpeta.getText();
-        System.out.print(this.nombreCarpeta);
+        if(!this.nombreCarpeta.isEmpty()){
+            interfaz parent = (interfaz)this.getParent();
+            if(parent.crearCarpeta(this.nombreCarpeta))
+                dispose();
+            else
+                JOptionPane.showMessageDialog(this, "El nombre de la carpeta ya existe", "Error",JOptionPane.ERROR_MESSAGE);
+        }
+        else{
+            JOptionPane.showMessageDialog(this, "Ingrese el nombre de la carpeta", "Error",JOptionPane.ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_addCarpetaActionPerformed
 
     private void cancelarButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelarButtonActionPerformed
