@@ -17,7 +17,7 @@ public class Node {
     private String name;
     private String type;
     private String extension;
-    private String size;
+    private int size;
     private String fechaCreacion;
     private String fechaModificacion;
 
@@ -70,11 +70,11 @@ public class Node {
         this.extension = extension;
     }
 
-    public String getSize() {
+    public int getSize() {
         return size;
     }
 
-    public void setSize(String size) {
+    public void setSize(int size) {
         this.size = size;
     }
 
