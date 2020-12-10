@@ -45,6 +45,10 @@ public class Node {
     public void setPunteros(int puntero) {
         this.punteros.add(puntero);
     }
+    
+    public void setNewPunteros(ArrayList<Integer> pPunteros) {
+        this.punteros = pPunteros;
+    }
 
     public String getName() {
         return name;
