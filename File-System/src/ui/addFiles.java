@@ -135,12 +135,25 @@ public class addFiles extends javax.swing.JDialog {
         if(!this.nombre.isEmpty() && !this.extension.isEmpty()){
             interfaz parent = (interfaz)this.getParent();
             int num = parent.crearArchivo(this.nombre, this.extension, this.contenido);
-            if(num == 2)
-                dispose();
-            else if(num == 0)
-                JOptionPane.showMessageDialog(this, "El nombre del archivo ya existe.", "Error",JOptionPane.ERROR_MESSAGE);
-            else
-                JOptionPane.showMessageDialog(this, "El disco ya esta lleno.", "Error",JOptionPane.ERROR_MESSAGE);
+            switch (num) {
+                case 2:
+                    dispose();
+                    break;
+                case 0:
+                    int result = JOptionPane.showConfirmDialog(null,"El nombre del archivo ya existe. ¿Desea que sea reemplazado?",null, JOptionPane.YES_NO_OPTION);
+                    if(result == JOptionPane.YES_OPTION){
+                        parent.eliminarNombre(this.nombre.concat(this.extension));
+                        num = parent.crearArchivo(this.nombre, this.extension, this.contenido);
+                        if(num == 2)
+                            dispose();
+                        else
+                            JOptionPane.showMessageDialog(this, "El disco ya esta lleno.", "Error",JOptionPane.ERROR_MESSAGE);
+                    }   
+                    break;
+                default:
+                    JOptionPane.showMessageDialog(this, "El disco ya esta lleno.", "Error",JOptionPane.ERROR_MESSAGE);
+                    break;
+            }
         }
         else{
             JOptionPane.showMessageDialog(this, "Ingrese el nombre del archivo y extension.", "Error",JOptionPane.ERROR_MESSAGE);

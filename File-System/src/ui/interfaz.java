@@ -214,14 +214,14 @@ public class interfaz extends javax.swing.JFrame {
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         // TODO add your handling code here:
         addFiles addFile = new addFiles(this,true);
-        addFile.setLocation(500,240);
+        addFile.setLocationRelativeTo(null);
         addFile.setVisible(true);     
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
         addDirectory addDirect = new addDirectory(this,true);
-        addDirect.setLocation(500,240);
+        addDirect.setLocationRelativeTo(null);
         addDirect.setVisible(true);
     }//GEN-LAST:event_jButton1ActionPerformed
 
@@ -236,6 +236,12 @@ public class interfaz extends javax.swing.JFrame {
         item1.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e){
                 System.out.println( jTable1.getSelectedRow());
+            }
+        });
+        
+        item4.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent e){
+                verPropiedades(jTable1.getSelectedRow());
             }
         });
         
@@ -266,6 +272,10 @@ public class interfaz extends javax.swing.JFrame {
         model.removeRow(pSelectDocument);
     }
     
+    public void eliminarNombre(String pNombre) {
+        eliminar(controlador.getPos(pNombre));
+    }
+    
     public boolean crearCarpeta(String pNombre) {
         if(!controlador.crearCarpeta(pNombre))
             return false;
@@ -274,6 +284,13 @@ public class interfaz extends javax.swing.JFrame {
         modelTree.insertNodeInto(child, rootTree, rootTree.getChildCount());
         jTree1.scrollPathToVisible(new TreePath(child.getPath()));
         return true;
+    }
+    
+    private void verPropiedades(int pSelectDocument){
+        viewProperties viewPropertiesWindow = new viewProperties(this,true);
+        viewPropertiesWindow.setLocationRelativeTo(null);
+        viewPropertiesWindow.setPropiedades(controlador.getPropiedades(pSelectDocument));
+        viewPropertiesWindow.setVisible(true);
     }
     
     public int crearArchivo(String pNombre, String pExtension, String pCont) {
