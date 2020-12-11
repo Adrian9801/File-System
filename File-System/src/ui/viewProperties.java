@@ -122,7 +122,7 @@ public class viewProperties extends javax.swing.JDialog {
                         .addGap(193, 193, 193)
                         .addComponent(jButton1))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(202, 202, 202)
+                        .addGap(190, 190, 190)
                         .addComponent(jLabel11)))
                 .addContainerGap(112, Short.MAX_VALUE))
         );

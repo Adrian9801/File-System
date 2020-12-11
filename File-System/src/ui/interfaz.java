@@ -11,14 +11,15 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import javax.swing.ImageIcon;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
-import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
 /**
@@ -32,11 +33,12 @@ public class interfaz extends javax.swing.JFrame {
     private DefaultTableModel model;
     private DefaultTreeModel modelTree;
     private DefaultMutableTreeNode rootTree;
+    private boolean busqueda;
     
     public interfaz() {
         initComponents();
         setLocationRelativeTo(null);
-        this.setResizable(false);
+        setResizable(false);
         popupTable();
         eventosMouse();
         crearDisco();
@@ -204,11 +206,25 @@ public class interfaz extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        // TODO add your handling code here:
+        String title = controlador.irAtras();
+        jLabel1.setText(title);
+        cargarCarpeta();
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
-        // TODO add your handling code here:
+        String nombre = jTextField1.getText();
+        if(nombre.isEmpty())
+            JOptionPane.showMessageDialog(this, "Ingrese un documento que buscar", "Error",JOptionPane.ERROR_MESSAGE);
+        else{
+            while(model.getRowCount() > 0){
+                model.removeRow(0);
+            }
+            ArrayList<String[]> listDocument = controlador.buscarDocument(nombre);
+            for (int i = 0; i < listDocument.size(); i++) {
+                model.addRow(new Object[]{listDocument.get(i)[0], listDocument.get(i)[1]});
+            }
+            busqueda = true;
+        }
     }//GEN-LAST:event_jButton4ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
@@ -235,7 +251,24 @@ public class interfaz extends javax.swing.JFrame {
         
         item1.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e){
-                System.out.println( jTable1.getSelectedRow());
+                abrirDocument(jTable1.getSelectedRow());
+            }
+        });
+        
+        item2.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent e){
+                DefaultMutableTreeNode node = (DefaultMutableTreeNode) jTree1.getLastSelectedPathComponent();
+                TreeNode[] a = node.getPath();
+                for (int i = 0; i < a.length; i++) {
+                    TreeNode treeNode = a[i];
+                    System.out.println(a[i].toString());
+                }
+            }
+        });
+        
+        item3.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent e){
+                mover(jTable1.getSelectedRow());
             }
         });
         
@@ -265,41 +298,114 @@ public class interfaz extends javax.swing.JFrame {
         model = (DefaultTableModel) jTable1.getModel();
         modelTree = (DefaultTreeModel) jTree1.getModel();
         rootTree = (DefaultMutableTreeNode) jTree1.getModel().getRoot();
+        busqueda = false;
     }
     
     private void eliminar(int pSelectDocument){
-        controlador.eliminarElemento(pSelectDocument);
+        controlador.eliminarElemento(pSelectDocument, busqueda);
         model.removeRow(pSelectDocument);
+        limpiarArbol();
     }
     
     public void eliminarNombre(String pNombre) {
         eliminar(controlador.getPos(pNombre));
+        limpiarArbol();
+    }
+    
+    private void mover(int pSelectDocument){
+        moveDocuments moveDocument = new moveDocuments(this,true);
+        moveDocument.setLocationRelativeTo(null);
+        moveDocument.mostrarCarpetas("root", controlador, controlador.getDir(pSelectDocument, busqueda));
+        moveDocument.setVisible(true);
+    }
+    
+    public boolean moverArchivo(String pDireccion, String pDireccionDestino, String pNombre){
+        if(controlador.moverElemento(pDireccion, pDireccionDestino, pNombre)){
+            limpiarArbol();
+            cargarCarpeta();
+            return true;
+        }
+        return false;
+    }
+    
+    public void eliminarDir(String pDirPadre, String pNombre){
+        controlador.eliminarEnDir(pDirPadre, pNombre);
     }
     
     public boolean crearCarpeta(String pNombre) {
+        if(busqueda)
+            cargarCarpeta();
         if(!controlador.crearCarpeta(pNombre))
             return false;
         model.addRow(new Object[]{pNombre, "Carpeta"});
-        DefaultMutableTreeNode child = new DefaultMutableTreeNode(pNombre);
-        modelTree.insertNodeInto(child, rootTree, rootTree.getChildCount());
-        jTree1.scrollPathToVisible(new TreePath(child.getPath()));
+        limpiarArbol();
         return true;
+    }
+    
+    private void cargarCarpeta(){
+        while(model.getRowCount() > 0){
+            model.removeRow(0);
+        }
+        ArrayList<String[]> listDocument = controlador.getCarpetaDocuments();
+        for (int i = 0; i < listDocument.size(); i++) {
+            model.addRow(new Object[]{listDocument.get(i)[0], listDocument.get(i)[1]});
+        }
+        jTextField1.setText("");
+        busqueda = false;
+    }
+    
+    private void limpiarArbol(){
+        rootTree.removeAllChildren();
+        modelTree.reload();
+        recargarArbol(rootTree, "root");
+        
+    }
+    
+    private void recargarArbol(DefaultMutableTreeNode pPadre, String pDir){
+        ArrayList<String[]> childs = controlador.getCarpetaDocuments(pDir);
+        for (int i = 0; i < childs.size(); i++) {
+            DefaultMutableTreeNode child = new DefaultMutableTreeNode(childs.get(i)[0]);
+            modelTree.insertNodeInto(child, pPadre, pPadre.getChildCount());
+            jTree1.scrollPathToVisible(new TreePath(child.getPath()));
+            String pNewDir = pDir + "/"+ childs.get(i)[0];
+            if(controlador.isDirectorio(pNewDir))
+                recargarArbol(child, pNewDir);
+        }
     }
     
     private void verPropiedades(int pSelectDocument){
         viewProperties viewPropertiesWindow = new viewProperties(this,true);
         viewPropertiesWindow.setLocationRelativeTo(null);
-        viewPropertiesWindow.setPropiedades(controlador.getPropiedades(pSelectDocument));
+        viewPropertiesWindow.setPropiedades(controlador.getPropiedades(pSelectDocument, busqueda));
         viewPropertiesWindow.setVisible(true);
     }
     
+    private void abrirDocument(int pSelectDocument){
+        if(controlador.isDirectorio(pSelectDocument, busqueda)){
+            String title = controlador.abrirDirectorio(pSelectDocument, busqueda);
+            jLabel1.setText(title);
+            cargarCarpeta();
+        }
+        else{
+            String[] datos = controlador.abrirArchivo(pSelectDocument, busqueda);
+            viewFiles viewFile = new viewFiles(this,true);
+            viewFile.setLocationRelativeTo(null);
+            viewFile.setFile(datos[0], datos[1]);
+            viewFile.setVisible(true);
+        }
+    }
+    
+    public boolean modificarArchivo(String pCont){
+        return controlador.modificarArchivo(jTable1.getSelectedRow(), pCont, busqueda);
+    }
+    
     public int crearArchivo(String pNombre, String pExtension, String pCont) {
+        if(busqueda)
+            cargarCarpeta();
         int num = controlador.crearArchivo(pNombre, pExtension, pCont);
         if(num == 2){
             model.addRow(new Object[]{pNombre.concat(pExtension), "Archivo"});
-            DefaultMutableTreeNode child = new DefaultMutableTreeNode(pNombre.concat(pExtension));
-            modelTree.insertNodeInto(child, rootTree, rootTree.getChildCount());
-            jTree1.scrollPathToVisible(new TreePath(child.getPath()));
+            limpiarArbol();
         }
         return num;
     }
@@ -331,7 +437,7 @@ public class interfaz extends javax.swing.JFrame {
                     int r = jTable1.rowAtPoint(e.getPoint());
                     if (r >= 0 && r < jTable1.getRowCount()) {
                         jTable1.setRowSelectionInterval(r, r);
-                        //llamada a metodo de abrir
+                        abrirDocument(jTable1.getSelectedRow());
                     } else
                         jTable1.clearSelection();
                 }

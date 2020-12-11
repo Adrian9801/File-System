@@ -24,6 +24,7 @@ public class Node {
     public Node(String name, String type, String pFechaCreacion) {
         this.name = name;
         this.type = type;
+        this.size = 0;
         this.fechaCreacion = pFechaCreacion;
         this.fechaModificacion = pFechaCreacion;
         this.childs = new ArrayList<Node>();
