@@ -16,10 +16,8 @@ public class FileSystem {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        // TODO code application logic here
-        //interfaz ui = new interfaz();
-        //ui.setVisible(true);
-        System.out.println(".tx.t".lastIndexOf("."));
+        interfaz ui = new interfaz();
+        ui.setVisible(true);
     }
     
 }

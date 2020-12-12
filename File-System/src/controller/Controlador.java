@@ -55,6 +55,21 @@ public class Controlador {
         return 2;
     }
     
+    public void crearArchivo(String pNombre, String pExtension, String pCont, String pDir){
+        ArrayList<Integer> punteros = agregarContDisco(pCont);
+        mem.addArchivo(pDir, pNombre.concat(pExtension), pExtension, pCont.length(), punteros);
+        if(cantSectLibres == 0)
+            JOptionPane.showMessageDialog(null, "El disco esta lleno.", "Error",JOptionPane.ERROR_MESSAGE);
+    }
+    
+    public int getSectorSize(){
+        return sizeSector;
+    }
+    
+    public int getCantSectorLibres(){
+        return cantSectLibres;
+    }
+    
     public boolean crearCarpeta(String pNombre){
         for (int i = 0; i < listDocuments.size(); i++) {
             if(listDocuments.get(i).compareToIgnoreCase(pNombre) == 0)
@@ -63,6 +78,10 @@ public class Controlador {
         mem.addDirectorio(dirActual, pNombre);
         listDocuments.add(pNombre);
         return true;
+    }
+    
+    public void crearCarpeta(String pDir, String pNombre){
+        mem.addDirectorio(pDir, pNombre);
     }
     
     public void eliminarElemento(int numDocument, boolean isBusqueda){
@@ -78,7 +97,8 @@ public class Controlador {
     }
     
     public void eliminarEnDir(String pDirPadre, String pNombre){
-        mem.eliminarElemento(pDirPadre, pNombre);
+        ArrayList<Integer> punteros = mem.eliminarElemento(pDirPadre, pNombre);
+        limpiarSectores(punteros);
     }
     
     public String[] abrirArchivo(int numDocument, boolean isBusqueda){
@@ -94,6 +114,37 @@ public class Controlador {
         }
         String[] datosArch = {nombre, leerDisco(punteroArch)};
         return datosArch;
+    }
+    
+    public String abrirArchivo(String pDir){
+        punteroArch = mem.abrirArchivo(pDir);
+        return leerDisco(punteroArch);
+    }
+    
+    public boolean copiarVerEspacio(int numDocument, boolean isBusqueda){
+        ArrayList<Integer> punteros;
+        if(isBusqueda)
+            punteros = mem.getPunteros(listDocuments.get(numDocument));
+        else
+            punteros = mem.getPunteros(dirActual.concat("/"+listDocuments.get(numDocument)));
+        return cantSectLibres >= punteros.size();
+    }
+    
+    public void crearDocumentCopiados(String pDirNew,String pDirAnt){
+        int pos = pDirAnt.lastIndexOf("/");
+        String nombre = pDirAnt.substring(pos+1);
+        if(isDirectorio(pDirAnt)){
+            crearCarpeta(pDirNew, nombre);
+            ArrayList<String[]> childs = getCarpetaDocuments(pDirAnt);
+            for (int i = 0; i < childs.size(); i++) {
+                crearDocumentCopiados(pDirNew.concat("/"+nombre), pDirAnt.concat("/"+childs.get(i)[0]));
+            }
+        }
+        else{
+            String cont = abrirArchivo(pDirAnt);
+            pos = nombre.lastIndexOf(".");
+            crearArchivo(nombre.substring(0,pos), nombre.substring(pos), cont, pDirNew);
+        }
     }
     
     public int getPos(String pNombre){

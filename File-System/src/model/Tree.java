@@ -107,20 +107,30 @@ public class Tree {
         else
             deletePointers.addAll(nodo.getPunteros());
         for (int i = 0; i < nodoPadre.getChilds().size(); i++) {
-            if(nodoPadre.getChilds().get(i).getName().compareToIgnoreCase(pNombre) == 0)
+            if(nodoPadre.getChilds().get(i).getName().compareToIgnoreCase(pNombre) == 0){
                 nodoPadre.getChilds().remove(i);
+                break;
+            }
         }
         return deletePointers;
     }
     
-    private void recorrido(Node nodoActual, ArrayList<Integer> deletePointers){
+    public ArrayList<Integer> getPunteros(String pDireccion){
+        ArrayList<Integer> pointers = new ArrayList<Integer>();
+        Node nodo = getNodePadre(pDireccion, 0);
+        if(nodo.getType().compareToIgnoreCase("Directorio") == 0)
+            recorrido(nodo, pointers);
+        else
+            pointers.addAll(nodo.getPunteros());
+        return pointers;
+    }
+    
+    private void recorrido(Node nodoActual, ArrayList<Integer> pPointers){
         for (int i = 0; i < nodoActual.getChilds().size(); i++) {
-            if(nodoActual.getChilds().get(i).getType().compareToIgnoreCase("Directorio") == 0){
-                recorrido(nodoActual.getChilds().get(i), deletePointers);
-            }
-            else{
-                deletePointers.addAll(nodoActual.getChilds().get(i).getPunteros());
-            }
+            if(nodoActual.getChilds().get(i).getType().compareToIgnoreCase("Directorio") == 0)
+                recorrido(nodoActual.getChilds().get(i), pPointers);
+            else
+                pPointers.addAll(nodoActual.getChilds().get(i).getPunteros());
         }
     }
     

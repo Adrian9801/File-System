@@ -17,14 +17,15 @@ import javax.swing.tree.TreePath;
  *
  * @author adri-
  */
-public class moveDocuments extends javax.swing.JDialog {
+public class treeDocuments extends javax.swing.JDialog {
 
     private DefaultTreeModel modelTree;
     private DefaultMutableTreeNode rootTree;
     private String extension;
     private String dirAntigua;
+    private int eleccion;
     
-    public moveDocuments(java.awt.Frame parent, boolean modal) {
+    public treeDocuments(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
         modelTree = (DefaultTreeModel) jTree1.getModel();
@@ -50,6 +51,7 @@ public class moveDocuments extends javax.swing.JDialog {
         jLabel2 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setResizable(false);
 
         javax.swing.tree.DefaultMutableTreeNode treeNode1 = new javax.swing.tree.DefaultMutableTreeNode("root");
         jTree1.setModel(new javax.swing.tree.DefaultTreeModel(treeNode1));
@@ -132,30 +134,74 @@ public class moveDocuments extends javax.swing.JDialog {
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         DefaultMutableTreeNode node = (DefaultMutableTreeNode) jTree1.getLastSelectedPathComponent();
         if(node != null){
-            if(!jTextField1.getText().isEmpty()){
-                if(jTextField1.getText().lastIndexOf(".") == -1 && jTextField1.getText().lastIndexOf("/") == -1){
+            switch(eleccion){
+                case 0:
+                    if(!jTextField1.getText().isEmpty()){
+                        if(jTextField1.getText().lastIndexOf(".") == -1 && jTextField1.getText().lastIndexOf("/") == -1){
+                            interfaz parent = (interfaz)this.getParent();
+                            String dir = "root";
+                            TreeNode[] dirNode = node.getPath();
+                            for (int i = 1; i < dirNode.length; i++) {
+                                dir += "/" + dirNode[i].toString();
+                            }
+                            if(parent.moverArchivo(dirAntigua, dir, jTextField1.getText() + extension))
+                                dispose();
+                            else{
+                                int result = JOptionPane.showConfirmDialog(this,"El nombre del documento ya existe. ¿Desea que sea reemplazado?",null, JOptionPane.YES_NO_OPTION);
+                                if(result == JOptionPane.YES_OPTION){
+                                    parent.eliminarDir(dir, jTextField1.getText() + extension);
+                                    parent.moverArchivo(dirAntigua, dir, jTextField1.getText() + extension);
+                                    dispose();
+                                }
+                            }
+                        }
+                        else
+                            JOptionPane.showMessageDialog(this, "Ingrese un nombre valido.", "Error",JOptionPane.ERROR_MESSAGE);
+                    }
+                    else
+                        JOptionPane.showMessageDialog(this, "Ingrese un nombre.", "Error",JOptionPane.ERROR_MESSAGE);
+                    break;
+                case 1:
                     interfaz parent = (interfaz)this.getParent();
                     String dir = "root";
                     TreeNode[] dirNode = node.getPath();
                     for (int i = 1; i < dirNode.length; i++) {
                         dir += "/" + dirNode[i].toString();
                     }
-                    if(parent.moverArchivo(dirAntigua, dir, jTextField1.getText() + extension))
+                    if(parent.copiarAFS(dir, dirAntigua))
                         dispose();
                     else{
                         int result = JOptionPane.showConfirmDialog(this,"El nombre del documento ya existe. ¿Desea que sea reemplazado?",null, JOptionPane.YES_NO_OPTION);
                         if(result == JOptionPane.YES_OPTION){
-                            parent.eliminarDir(dir, jTextField1.getText() + extension);
-                            parent.moverArchivo(dirAntigua, dir, jTextField1.getText() + extension);
+                            int pos = dirAntigua.lastIndexOf("/");
+                            String nombre = dirAntigua.substring(pos+1);
+                            parent.eliminarDir(dir, nombre);
+                            parent.copiarAFS(dir, dirAntigua);
                             dispose();
                         }
                     }
-                }
-                else
-                    JOptionPane.showMessageDialog(this, "Ingrese un nombre valido.", "Error",JOptionPane.ERROR_MESSAGE);
+                    break;
+                default:
+                    interfaz parents = (interfaz)this.getParent();
+                    String dirNew = "root";
+                    TreeNode[] dirNodes = node.getPath();
+                    for (int i = 1; i < dirNodes.length; i++) {
+                        dirNew += "/" + dirNodes[i].toString();
+                    }
+                    if(parents.copiarToFS(dirNew, dirAntigua))
+                        dispose();
+                    else{
+                        int result = JOptionPane.showConfirmDialog(this,"El nombre del documento ya existe. ¿Desea que sea reemplazado?",null, JOptionPane.YES_NO_OPTION);
+                        if(result == JOptionPane.YES_OPTION){
+                            int pos = dirAntigua.lastIndexOf("\\");
+                            String nombre = dirAntigua.substring(pos+1);
+                            parents.eliminarDir(dirNew, nombre);
+                            parents.copiarToFS(dirNew, dirAntigua);
+                            dispose();
+                        }
+                    }
+                    break;
             }
-            else
-                JOptionPane.showMessageDialog(this, "Ingrese un nombre.", "Error",JOptionPane.ERROR_MESSAGE);
         }
         else
             JOptionPane.showMessageDialog(this, "Seleccione un directorio destino.", "Error",JOptionPane.ERROR_MESSAGE);
@@ -171,19 +217,38 @@ public class moveDocuments extends javax.swing.JDialog {
         }
         jTextField1.setText(nombre);
         dirAntigua = pDirMove;
+        eleccion = 0;
         cargarCarpetas(rootTree, pDir, pControlador, pDirMove);
     }
     
-    private void cargarCarpetas(DefaultMutableTreeNode pPadre, String pDir, Controlador pControlador, String pDirMove){
+    public void copiarCargar(String pDir, Controlador pControlador, String pDirCopy){
+        jTextField1.setVisible(false);
+        jLabel2.setVisible(false);
+        dirAntigua = pDirCopy;
+        jButton1.setText("Copiar");
+        eleccion = 1;
+        cargarCarpetas(rootTree, pDir, pControlador, pDirCopy);
+    }
+    
+    public void copiarRRCargar(String pDir, Controlador pControlador, String pDirCopy){
+        jTextField1.setVisible(false);
+        jLabel2.setVisible(false);
+        dirAntigua = pDirCopy;
+        jButton1.setText("Copiar");
+        eleccion = 2;
+        cargarCarpetas(rootTree, pDir, pControlador, "");
+    }
+    
+    private void cargarCarpetas(DefaultMutableTreeNode pPadre, String pDir, Controlador pControlador, String pDirNew){
         ArrayList<String[]> childs = pControlador.getCarpetaDocuments(pDir);
         for (int i = 0; i < childs.size(); i++) {
             String pNewDir = pDir + "/"+ childs.get(i)[0];
-            if(!pControlador.isDirectorio(pNewDir) || pDirMove.compareToIgnoreCase(pNewDir) == 0)
+            if(!pControlador.isDirectorio(pNewDir) || (pDirNew.compareToIgnoreCase(pNewDir) == 0 && eleccion == 0))
                 continue;
             DefaultMutableTreeNode child = new DefaultMutableTreeNode(childs.get(i)[0]);
             modelTree.insertNodeInto(child, pPadre, pPadre.getChildCount());
             jTree1.scrollPathToVisible(new TreePath(child.getPath()));
-            cargarCarpetas(child, pNewDir, pControlador, pDirMove);
+            cargarCarpetas(child, pNewDir, pControlador, pDirNew);
         }
     }
     
@@ -204,20 +269,21 @@ public class moveDocuments extends javax.swing.JDialog {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(moveDocuments.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(treeDocuments.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(moveDocuments.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(treeDocuments.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(moveDocuments.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(treeDocuments.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(moveDocuments.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(treeDocuments.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
+        //</editor-fold>
         //</editor-fold>
 
         /* Create and display the dialog */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                moveDocuments dialog = new moveDocuments(new javax.swing.JFrame(), true);
+                treeDocuments dialog = new treeDocuments(new javax.swing.JFrame(), true);
                 dialog.addWindowListener(new java.awt.event.WindowAdapter() {
                     @Override
                     public void windowClosing(java.awt.event.WindowEvent e) {
