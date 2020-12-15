@@ -5,6 +5,9 @@
  */
 package ui;
 
+import java.awt.Container;
+import javax.swing.JOptionPane;
+
 /**
  *
  * @author sergi
@@ -100,7 +103,25 @@ public class addDirectory extends javax.swing.JDialog {
     private void addCarpetaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addCarpetaActionPerformed
         // TODO add your handling code here:
         this.nombreCarpeta = this.fNombreCarpeta.getText();
-        System.out.print(this.nombreCarpeta);
+        if(!this.nombreCarpeta.isEmpty()){
+            if(this.nombreCarpeta.lastIndexOf(".") == -1 && this.nombreCarpeta.lastIndexOf("/") == -1){
+                interfaz parent = (interfaz)this.getParent();
+                if(parent.crearCarpeta(this.nombreCarpeta))
+                    dispose();
+                else{
+                    int result = JOptionPane.showConfirmDialog(this,"El nombre del directorio ya existe. ¿Desea que sea reemplazado?",null, JOptionPane.YES_NO_OPTION);
+                    if(result == JOptionPane.YES_OPTION){
+                        parent.eliminarNombre(this.nombreCarpeta);
+                        parent.crearCarpeta(this.nombreCarpeta);
+                        dispose();
+                    }
+                }
+            }
+            else
+                JOptionPane.showMessageDialog(this, "Ingrese un nombre de directorio valido", "Error",JOptionPane.ERROR_MESSAGE);
+        }
+        else
+            JOptionPane.showMessageDialog(this, "Ingrese el nombre del directorio", "Error",JOptionPane.ERROR_MESSAGE);
     }//GEN-LAST:event_addCarpetaActionPerformed
 
     private void cancelarButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelarButtonActionPerformed

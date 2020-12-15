@@ -5,6 +5,8 @@
  */
 package ui;
 
+import javax.swing.JOptionPane;
+
 /**
  *
  * @author sergi
@@ -130,7 +132,35 @@ public class addFiles extends javax.swing.JDialog {
         this.nombre = this.fNombre.getText();
         this.extension = this.fExtension.getText();
         this.contenido = this.fContenido.getText();
-        System.out.print(this.nombre+", "+this.extension+", "+this.contenido);
+        if(!this.nombre.isEmpty() && this.extension.length() > 1){
+            if(this.extension.lastIndexOf(".") == 0 && this.nombre.lastIndexOf(".") == -1 && this.extension.lastIndexOf("/") == -1 && this.nombre.lastIndexOf("/") == -1){
+                interfaz parent = (interfaz)this.getParent();
+                int num = parent.crearArchivo(this.nombre, this.extension, this.contenido);
+                switch (num) {
+                    case 2:
+                        dispose();
+                        break;
+                    case 0:
+                        int result = JOptionPane.showConfirmDialog(this,"El nombre del archivo ya existe. ¿Desea que sea reemplazado?",null, JOptionPane.YES_NO_OPTION);
+                        if(result == JOptionPane.YES_OPTION){
+                            parent.eliminarNombre(this.nombre.concat(this.extension));
+                            num = parent.crearArchivo(this.nombre, this.extension, this.contenido);
+                            if(num == 2)
+                                dispose();
+                            else
+                                JOptionPane.showMessageDialog(this, "No hay espacio suficiente en el disco.", "Error",JOptionPane.ERROR_MESSAGE);
+                        }   
+                        break;
+                    default:
+                        JOptionPane.showMessageDialog(this, "No hay espacio suficiente en el disco.", "Error",JOptionPane.ERROR_MESSAGE);
+                        break;
+                }
+            }
+            else
+                JOptionPane.showMessageDialog(this, "Ingrese un nombre y extension validas.", "Error",JOptionPane.ERROR_MESSAGE);
+        }
+        else
+            JOptionPane.showMessageDialog(this, "Ingrese el nombre del archivo y extension.", "Error",JOptionPane.ERROR_MESSAGE);
     }//GEN-LAST:event_addFileButtonActionPerformed
 
     private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
