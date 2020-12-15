@@ -271,7 +271,14 @@ public class interfaz extends javax.swing.JFrame {
         if(respuesta == JFileChooser.APPROVE_OPTION){
             File select = fc.getSelectedFile();
             if(select != null){
-                int cant = espacioNecesario(select.getAbsolutePath(),0);
+                int cant = 0;
+                if(select.isDirectory())
+                    cant = espacioNecesario(select.getAbsolutePath(),0);
+                else{
+                    cant += copiarRRtoSF(select.getAbsolutePath()).length() / controlador.getSectorSize();
+                    if(copiarRRtoSF(select.getAbsolutePath()).length() % controlador.getSectorSize() != 0)
+                        cant++;
+                }
                 if(controlador.getCantSectorLibres() >= cant){
                     treeDocuments copyDocument = new treeDocuments(this,true);
                     copyDocument.setLocationRelativeTo(null);
