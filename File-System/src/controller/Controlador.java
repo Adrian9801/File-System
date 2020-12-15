@@ -14,6 +14,7 @@ import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 import model.Tree;
 
 /**
@@ -26,6 +27,7 @@ public class Controlador {
     private int cantSectLibres;
     private ArrayList<String> listDocuments;
     private String dirActual;
+    private ArrayList<Integer> punteroArch;
     private Tree mem;
     
     public Controlador(int pCantidadSectores, int pSizeSector){
@@ -48,7 +50,24 @@ public class Controlador {
             return 1;
         mem.addArchivo(dirActual, pNombre.concat(pExtension), pExtension, pCont.length(), punteros);
         listDocuments.add(pNombre.concat(pExtension));
+        if(cantSectLibres == 0)
+            JOptionPane.showMessageDialog(null, "El disco esta lleno.", "Error",JOptionPane.ERROR_MESSAGE);
         return 2;
+    }
+    
+    public void crearArchivo(String pNombre, String pExtension, String pCont, String pDir){
+        ArrayList<Integer> punteros = agregarContDisco(pCont);
+        mem.addArchivo(pDir, pNombre.concat(pExtension), pExtension, pCont.length(), punteros);
+        if(cantSectLibres == 0)
+            JOptionPane.showMessageDialog(null, "El disco esta lleno.", "Error",JOptionPane.ERROR_MESSAGE);
+    }
+    
+    public int getSectorSize(){
+        return sizeSector;
+    }
+    
+    public int getCantSectorLibres(){
+        return cantSectLibres;
     }
     
     public boolean crearCarpeta(String pNombre){
@@ -61,18 +80,71 @@ public class Controlador {
         return true;
     }
     
-    public void eliminarElemento(int numDocument){
-        ArrayList<Integer> punteros = mem.eliminarElemento(dirActual, listDocuments.get(numDocument));
+    public void crearCarpeta(String pDir, String pNombre){
+        mem.addDirectorio(pDir, pNombre);
+    }
+    
+    public void eliminarElemento(int numDocument, boolean isBusqueda){
+        ArrayList<Integer> punteros;
+        if(isBusqueda){
+            int pos = listDocuments.get(numDocument).lastIndexOf("/");
+            punteros = mem.eliminarElemento(listDocuments.get(numDocument).substring(0,pos),listDocuments.get(numDocument).substring(pos+1));
+        }
+        else
+            punteros = mem.eliminarElemento(dirActual, listDocuments.get(numDocument));
         limpiarSectores(punteros);
         listDocuments.remove(numDocument);
     }
     
-    //metodo verificar si es carpeta o archivo
+    public void eliminarEnDir(String pDirPadre, String pNombre){
+        ArrayList<Integer> punteros = mem.eliminarElemento(pDirPadre, pNombre);
+        limpiarSectores(punteros);
+    }
     
-    public void abrirArchivo(int numDocument){
-       // nodo = mem.GetArch(dirActual.concat("/"+listDocuments.get(numDocument)));
-       
-        
+    public String[] abrirArchivo(int numDocument, boolean isBusqueda){
+        String nombre = "";
+        if(isBusqueda){
+            int pos = listDocuments.get(numDocument).lastIndexOf("/");
+            nombre = listDocuments.get(numDocument).substring(pos+1);
+            punteroArch = mem.abrirArchivo(listDocuments.get(numDocument));
+        }
+        else{
+            nombre = listDocuments.get(numDocument);
+            punteroArch = mem.abrirArchivo(dirActual.concat("/"+listDocuments.get(numDocument)));
+        }
+        String[] datosArch = {nombre, leerDisco(punteroArch)};
+        return datosArch;
+    }
+    
+    public String abrirArchivo(String pDir){
+        punteroArch = mem.abrirArchivo(pDir);
+        return leerDisco(punteroArch);
+    }
+    
+    public boolean copiarVerEspacio(int numDocument, boolean isBusqueda){
+        ArrayList<Integer> punteros;
+        if(isBusqueda)
+            punteros = mem.getPunteros(listDocuments.get(numDocument));
+        else
+            punteros = mem.getPunteros(dirActual.concat("/"+listDocuments.get(numDocument)));
+        return cantSectLibres >= punteros.size();
+    }
+    
+    public void crearDocumentCopiados(String pDirNew,String pDirAnt){
+        int pos = pDirAnt.lastIndexOf("/");
+        String nombre = pDirAnt.substring(pos+1);
+        if(isDirectorio(pDirAnt)){
+            crearCarpeta(pDirNew, nombre);
+            ArrayList<String[]> childs = getCarpetaDocuments(pDirAnt);
+            for (int i = 0; i < childs.size(); i++) {
+                crearDocumentCopiados(pDirNew.concat("/"+nombre), pDirAnt.concat("/"+childs.get(i)[0]));
+            }
+        }
+        else{
+            String cont = abrirArchivo(pDirAnt);
+            pos = nombre.lastIndexOf(".");
+            crearArchivo(nombre.substring(0,pos), nombre.substring(pos), cont, pDirNew);
+        }
     }
     
     public int getPos(String pNombre){
@@ -83,28 +155,99 @@ public class Controlador {
         return -1;
     }
     
-    public void abrirDirectorio(int numDocument){
-        dirActual = dirActual.concat("/"+listDocuments.get(numDocument));
-       // nodo = mem.GetArch(dirActual.concat("/"+listDocuments.get(numDocument)));
-        
-        
+    public String abrirDirectorio(int numDocument, boolean isBusqueda){
+        if(isBusqueda)
+            dirActual = listDocuments.get(numDocument);
+        else
+            dirActual = dirActual.concat("/"+listDocuments.get(numDocument));
+        return dirActual;
     }
     
-    public void moverElemento(){
-        
+    public String irAtras(){
+        if(dirActual.compareToIgnoreCase("root") != 0){
+            int pos = dirActual.lastIndexOf("/");
+            dirActual = dirActual.substring(0, pos);
+        }
+        return dirActual;
+    }
+    
+    public boolean modificarArchivo(int numDocument, String pCont, boolean isBusqueda){
+        int size = pCont.length();
+        if(modSectores(pCont)){
+            if(isBusqueda)
+                mem.modificarArchivo(listDocuments.get(numDocument), size, punteroArch);
+            else
+                mem.modificarArchivo(dirActual.concat("/"+listDocuments.get(numDocument)), size, punteroArch);
+            if(cantSectLibres == 0)
+                JOptionPane.showMessageDialog(null, "El disco esta lleno.", "Error",JOptionPane.ERROR_MESSAGE);
+            return true;
+        }
+        return false;
+    }
+    
+    public ArrayList<String[]> buscarDocument(String pNombre){
+        ArrayList<String[]> list = mem.buscarDocument(pNombre);
+        listDocuments.clear();
+        for (int i = 0; i < list.size(); i++) {
+            listDocuments.add(list.get(i)[0]);
+        }
+        return list;
+    }
+    
+    public ArrayList<String[]> getCarpetaDocuments(){
+        ArrayList<String[]> list = mem.getCarpetaDocuments(dirActual);
+        listDocuments.clear();
+        for (int i = 0; i < list.size(); i++) {
+            listDocuments.add(list.get(i)[0]);
+        }
+        return list;
+    }
+    
+    public ArrayList<String[]> getCarpetaDocuments(String pDir){
+        ArrayList<String[]> list = mem.getCarpetaDocuments(pDir);
+        return list;
+    }
+    
+    public boolean moverElemento(String pDireccion, String pDireccionDestino, String pNombre){
+        if(mem.moverDocument(pDireccion, pDireccionDestino, pNombre)){
+            dirActual = pDireccionDestino;
+            return true;
+        }
+        return false;
+    }
+    
+    public String getDir(int numDocument, boolean isBusqueda){
+        if(isBusqueda)
+            return listDocuments.get(numDocument);
+        return dirActual.concat("/"+listDocuments.get(numDocument));
     }
     
     public void copiarElemento(){
         
     }
     
-    public ArrayList<String> getPropiedades(int numDocument){
-        ArrayList<String> propiedades = mem.getPropiedades(dirActual.concat("/"+listDocuments.get(numDocument)));
+    public ArrayList<String> getPropiedades(int numDocument, boolean isBusqueda){
+        ArrayList<String> propiedades;
+        if(isBusqueda)
+            propiedades = mem.getPropiedades(listDocuments.get(numDocument));
+        else
+            propiedades = mem.getPropiedades(dirActual.concat("/"+listDocuments.get(numDocument)));
         return propiedades;
     }
     
-    public boolean isDirectorio(int numDocument){
+    public ArrayList<String> getPropiedades(String pDir){
+        ArrayList<String> propiedades = mem.getPropiedades(pDir);
+        return propiedades;
+    }
+    
+    public boolean isDirectorio(int numDocument, boolean isBusqueda){
+        if(isBusqueda)
+            return mem.isDirectorio(listDocuments.get(numDocument));
         return mem.isDirectorio(dirActual.concat("/"+listDocuments.get(numDocument)));
+    }
+    
+    public boolean isDirectorio(String pDir){
+        return mem.isDirectorio(pDir);
     }
     
     private void crearDisco(){
@@ -117,8 +260,8 @@ public class Controlador {
             for (int i = 0; i < sizeSector; i++) {
                 sector = sector.concat("0");
             }
-            String infoDisco = sector;
-            sector = "|".concat(sector);
+            String infoDisco = sector.concat("|");
+            sector = infoDisco;
             for (int i = 1; i < cantSectores; i++) {
                 infoDisco = infoDisco.concat(sector);
             }
@@ -189,5 +332,81 @@ public class Controlador {
         } catch (IOException ex) {
             Logger.getLogger(Controlador.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    
+    private String leerDisco(ArrayList<Integer> pPunteros){
+        String cont = "";
+        try {
+            File f = new File("Disco.txt"); 
+            RandomAccessFile r; 
+            r = new RandomAccessFile(f,"rw");
+            for (int i = 0; i < pPunteros.size(); i++) {
+                r.seek(pPunteros.get(i));
+                char charRead = (char)r.readByte();
+                if(charRead == '*')
+                    break;
+                for (int j = pPunteros.get(i)+1; charRead != '0' && charRead != '|'; j++) {
+                    cont += charRead;
+                    r.seek(j);
+                    charRead = (char)r.readByte();
+                }
+            }
+            r.close();
+        }catch (FileNotFoundException ex) {
+            Logger.getLogger(Controlador.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(Controlador.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return cont;
+    }
+    
+    private boolean modSectores(String pCont){
+        int libres = cantSectLibres + punteroArch.size() - (pCont.length() / sizeSector);
+        if((pCont.length()%sizeSector) != 0)
+            libres--;
+        if(libres < 0)
+            return false;
+        limpiarSectores(punteroArch);
+        try {
+            File f = new File("Disco.txt"); 
+            RandomAccessFile r; 
+            r = new RandomAccessFile(f,"rw");
+            for (int i = 0; i < punteroArch.size();) {
+                r.seek(punteroArch.get(i));
+                if(pCont.length() > sizeSector){
+                    r.write(pCont.substring(0, sizeSector).getBytes());
+                    pCont = pCont.substring(sizeSector);
+                }
+                else if(pCont.length() > 0){
+                    r.write(pCont.getBytes());
+                    pCont = "";
+                }
+                else
+                    r.write("*".getBytes());
+                i++;
+                if(punteroArch.size() == i && pCont.length() > 0){
+                    r.close();
+                    punteroArch.addAll(agregarContDisco(pCont));
+                    cantSectLibres = libres;
+                    return true;
+                }
+                else if(pCont.length() == 0 && punteroArch.size() > i){
+                    for (; i == punteroArch.size();) {
+                        punteroArch.remove(i);
+                    }
+                    punteroArch.remove(i);
+                    r.close();
+                    cantSectLibres = libres;
+                    return true;
+                }
+            }
+            r.close();
+        }catch (FileNotFoundException ex) {
+            Logger.getLogger(Controlador.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(Controlador.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        cantSectLibres = libres;
+        return true;
     }
 }

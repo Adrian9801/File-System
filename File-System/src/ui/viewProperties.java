@@ -45,6 +45,7 @@ public class viewProperties extends javax.swing.JDialog {
         jLabel11 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setResizable(false);
 
         jButton1.setFont(new java.awt.Font("Dialog", 0, 12)); // NOI18N
         jButton1.setText("Aceptar");
@@ -122,7 +123,7 @@ public class viewProperties extends javax.swing.JDialog {
                         .addGap(193, 193, 193)
                         .addComponent(jButton1))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(202, 202, 202)
+                        .addGap(190, 190, 190)
                         .addComponent(jLabel11)))
                 .addContainerGap(112, Short.MAX_VALUE))
         );

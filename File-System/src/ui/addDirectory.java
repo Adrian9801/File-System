@@ -104,21 +104,24 @@ public class addDirectory extends javax.swing.JDialog {
         // TODO add your handling code here:
         this.nombreCarpeta = this.fNombreCarpeta.getText();
         if(!this.nombreCarpeta.isEmpty()){
-            interfaz parent = (interfaz)this.getParent();
-            if(parent.crearCarpeta(this.nombreCarpeta))
-                dispose();
-            else{
-                int result = JOptionPane.showConfirmDialog(null,"El nombre de la carpeta ya existe. ¿Desea que sea reemplazada?",null, JOptionPane.YES_NO_OPTION);
-                if(result == JOptionPane.YES_OPTION){
-                    parent.eliminarNombre(this.nombreCarpeta);
-                    parent.crearCarpeta(this.nombreCarpeta);
+            if(this.nombreCarpeta.lastIndexOf(".") == -1 && this.nombreCarpeta.lastIndexOf("/") == -1){
+                interfaz parent = (interfaz)this.getParent();
+                if(parent.crearCarpeta(this.nombreCarpeta))
                     dispose();
+                else{
+                    int result = JOptionPane.showConfirmDialog(this,"El nombre del directorio ya existe. ¿Desea que sea reemplazado?",null, JOptionPane.YES_NO_OPTION);
+                    if(result == JOptionPane.YES_OPTION){
+                        parent.eliminarNombre(this.nombreCarpeta);
+                        parent.crearCarpeta(this.nombreCarpeta);
+                        dispose();
+                    }
                 }
             }
+            else
+                JOptionPane.showMessageDialog(this, "Ingrese un nombre de directorio valido", "Error",JOptionPane.ERROR_MESSAGE);
         }
-        else{
-            JOptionPane.showMessageDialog(this, "Ingrese el nombre de la carpeta", "Error",JOptionPane.ERROR_MESSAGE);
-        }
+        else
+            JOptionPane.showMessageDialog(this, "Ingrese el nombre del directorio", "Error",JOptionPane.ERROR_MESSAGE);
     }//GEN-LAST:event_addCarpetaActionPerformed
 
     private void cancelarButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelarButtonActionPerformed
