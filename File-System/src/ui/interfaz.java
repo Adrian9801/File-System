@@ -597,6 +597,7 @@ public class interfaz extends javax.swing.JFrame {
         if(controlador.moverElemento(pDireccion, pDireccionDestino, pNombre)){
             limpiarArbol();
             cargarCarpeta();
+            jLabel1.setText(pDireccionDestino);
             return true;
         }
         return false;
