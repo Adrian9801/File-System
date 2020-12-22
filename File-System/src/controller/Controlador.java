@@ -303,9 +303,9 @@ public class Controlador {
                 }
                 r.close();
             } catch (FileNotFoundException ex) {
-                Logger.getLogger(Controlador.class.getName()).log(Level.SEVERE, null, ex);
+                
             } catch (IOException ex) {
-                Logger.getLogger(Controlador.class.getName()).log(Level.SEVERE, null, ex);
+               
             }
             cantSectLibres -= cantNecesariaSectores;
         }

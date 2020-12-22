@@ -170,7 +170,7 @@ public class Tree {
                     String[] dir = {pDirActual.concat("/"+nodoActual.getChilds().get(i).getName()), "Directorio"}; 
                     pListDir.add(dir);
                 }
-                recorridoBusqueda(nodoActual.getChilds().get(i), pDirActual.concat("/"+nodoActual.getName()), pListDir, pNombre);
+                recorridoBusqueda(nodoActual.getChilds().get(i), pDirActual.concat("/"+nodoActual.getChilds().get(i).getName()), pListDir, pNombre);
             }
             else{
                 if((nodoActual.getChilds().get(i).getName().toLowerCase()).contains(pNombre.toLowerCase())){
